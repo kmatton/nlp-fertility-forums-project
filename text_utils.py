@@ -1,17 +1,20 @@
 import re
 
-from IPython import embed
-import gensim
 from gensim.utils import simple_preprocess
 import spacy
 import nltk
 import numpy as np
 
-from src import config
-from src.data_utils import read_file_by_lines
+
+LIWC_2015_PATH = './LIWC.2015.all'
 
 
-LIWC_2015_PATH = ''
+def read_file_by_lines(filename):
+    """
+    Read a file into a list of lines
+    """
+    with open(filename, "r") as f:
+        return f.read().splitlines()
 
 
 # prepare stopwords
@@ -19,7 +22,7 @@ nltk.download('stopwords')
 from nltk.corpus import stopwords
 sw = stopwords.words('english')
 # remove words in LIWC from stopwords list
-liwc_lines = read_file_by_lines(config.LIWC_2015_PATH)
+liwc_lines = read_file_by_lines(LIWC_2015_PATH)
 liwc_words = set([line.split(' ')[0] for line in liwc_lines])
 liwc_star_words = set([lw for lw in liwc_words if lw[-1] == '*'])
 sw = [word for word in sw if word not in liwc_words]
@@ -31,7 +34,7 @@ nltk.download('punkt')
 SENT_TOKENIZER = nltk.data.load('tokenizers/punkt/english.pickle')
 
 # prepare spacy NLP lemmatizer
-NLP = spacy.load('en', disable=['parser', 'ner'])  # only keep tagger component for efficiency
+NLP = spacy.load('en_core_web_sm', disable=['parser', 'ner'])  # only keep tagger component for efficiency
 
 
 def process_single_post_text(text, do_lemmatize=True):
