@@ -22,7 +22,8 @@ class DataProcessor:
 
         Current post filtering steps are:
         * remove posts made by moderators
-        * remove posts that have been removed by moderators or deleted
+        * remove posts that have been removed by moderators or deleted (including those without authors)
+        * remove posts without any 'selftext'/post text
         """
         self.data_df = pd.read_csv(data_path, index_col=0)
         self.moderators_path = moderators_path
@@ -91,7 +92,8 @@ class TextProcessor:
         The cleaned versions of the text are stored as lists of sentences, which are lists of words.
 
         NOTES:
-        * We are currently not filtering based on word count, but may want to add this
+        * We are not filtering posts after they are pre-processed --> but some may be empty or only have a few
+            words so we may want to add this.
         """
         self.data_df = pd.read_csv(data_path, index_col=0)
         self.lemmatize = lemmatize
@@ -99,13 +101,14 @@ class TextProcessor:
 
     def process_text(self):
         # process text for each title and post
-        self.data_df['processed_text'] = []
-        self.data_df['processed_title'] = []
-        del_rows = []
+        process_text_list = []
+        process_title_list = []
         for idx, row in self.data_df.iterrows():
-            row['processed_text'] = process_single_post_text(row['selftext'], do_lemmatize=self.lemmatize)
-            row['processed_title'] = process_single_post_text(row['title'], do_lemmatize=self.lemmatize)
-            # remove post if empty
-            if not row['processed_text'] and not row['processed_title']:
-                del_rows.append(idx)
-        self.data_df.drop(index=del_rows, inplace=True)
+            process_text_list.append(process_single_post_text(row['selftext'],
+                                                              do_lemmatize=self.lemmatize,
+                                                              remove_stops=self.remove_stops))
+            process_title_list.append(process_single_post_text(row['title'],
+                                                               do_lemmatize=self.lemmatize,
+                                                               remove_stops=self.remove_stops))
+        self.data_df["processed_text"] = process_text_list
+        self.data_df["processed_title"] = process_title_list

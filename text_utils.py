@@ -37,17 +37,18 @@ SENT_TOKENIZER = nltk.data.load('tokenizers/punkt/english.pickle')
 NLP = spacy.load('en_core_web_sm', disable=['parser', 'ner'])  # only keep tagger component for efficiency
 
 
-def process_single_post_text(text, do_lemmatize=True):
+def process_single_post_text(text, do_lemmatize=True, remove_stops=True):
     """
     Process text from single post.
     :param text: string of text from post or post title
     :param do_lemmatize: if True, apply lemmatization
+    :param remove_stops: if True, remove stopwords
     :return: sents: cleaned text broken up into sentences
     """
     text = remove_special_chars(text)
     sents = split_into_sentences(text)
     # remove punctuation, stopwords, and convert to lowercase
-    sents = clean_and_tokenize(sents)
+    sents = clean_and_tokenize(sents, remove_stops)
     if do_lemmatize:
         # lemmatize words in each sentence
         for idx, sent in enumerate(sents):
@@ -65,13 +66,16 @@ def lemmatize(doc):
     return doc
 
 
-def clean_and_tokenize(sentences):
+def clean_and_tokenize(sentences, remove_stops=True):
     """
     Converts each sentence (str) in sentences (list of strs) into a list of words.
     Also cleans text by removing punctuation, removing stopwords, and converting to lowercase.
     """
+    stops = STOP_WORDS
+    if not remove_stops:
+        stops = []
     # deacc=True to remove punctuation
-    sentences = [[word for word in simple_preprocess(sent, deacc=True) if word not in STOP_WORDS] for sent in sentences]
+    sentences = [[word for word in simple_preprocess(sent, deacc=True, min_len=1) if word not in stops] for sent in sentences]
     return sentences
 
 
