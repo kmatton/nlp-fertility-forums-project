@@ -8,7 +8,7 @@ import pandas as pd
 from text_utils import process_single_post_text
 
 
-class DataProcessor:
+class PostProcessor:
     """
     Class to read and process Reddit post data.
     """
@@ -69,6 +69,57 @@ class DataProcessor:
         assignments = ["train"] * train_count + ["val"] * val_count + ["test"] * test_count
         np.random.shuffle(assignments)
         self.data_df["data_split"] = assignments
+
+
+class CommentProcessor:
+    """
+    Class to read and process Reddit comment.
+    """
+    def __init__(self, data_path, moderators_path):
+        """
+        :param data_path: path to CSV file with dataset
+        :param moderators_path: path to text file with list of moderators
+
+        Function to apply the following filtering steps:
+        * remove posts made by moderators
+        * remove posts that have been removed by moderators or deleted (including those without authors)
+        * remove posts without any 'body' (i.e. text content of comment)
+        """
+        self.data_df = pd.read_csv(data_path, index_col=0)
+        self.moderators_path = moderators_path
+        with open(self.moderators_path, 'r') as f:
+            self.moderators = set(f.read().splitlines())
+
+    def filter(self):
+        keep_columns = [
+            # id and other metadata
+            'id',
+            'parent_id',
+            'created_utc',
+            'author',
+            'author_fullname',
+            'author_flair_text',
+            'permalink',
+            # text
+            'body',
+            # measures of comment feedback
+            'score',
+            'ups',
+            'downs',
+            'controversiality'
+        ]
+        self.data_df = self.data_df[keep_columns]
+
+        # exclude posts from moderators
+        self.data_df = self.data_df[~self.data_df["author"].isin(self.moderators)]
+
+        # exclude deleted/removed posts
+        del_list = ['[removed]', '[deleted]']
+        self.data_df = self.data_df[~self.data_df["body"].isin(del_list)]
+
+        # exclude posts without an author (this means they have been removed/deleted) and those without any text
+        self.data_df = self.data_df[self.data_df["body"].notnull()]
+        self.data_df = self.data_df[self.data_df["author"].notnull()]
 
 
 class TextProcessor:

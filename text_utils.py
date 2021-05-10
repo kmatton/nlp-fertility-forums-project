@@ -1,5 +1,6 @@
 import re
 
+import gensim
 from gensim.utils import simple_preprocess
 import spacy
 import nltk
@@ -59,11 +60,20 @@ def process_single_post_text(text, do_lemmatize=True, remove_stops=True):
 def lemmatize(doc):
     """
     Lemmatize words in doc.
+    Note: lemmatization makes 'i' capital I. 
     :param: doc: list of words (strs).
     """
     doc = NLP(" ".join(doc))
     doc = [word.lemma_ for word in doc]
     return doc
+
+
+def lemmatize_docs(docs):
+    """
+    Lemmatize words in each doc. Each doc is a list of words.
+    """
+    docs = [lemmatize(doc) for doc in docs]
+    return docs
 
 
 def clean_and_tokenize(sentences, remove_stops=True):
@@ -134,3 +144,37 @@ def remove_special_chars(text):
     text = re.sub('#', '', text)
 
     return text
+
+
+def build_bigram_model(sentences, min_count=5, threshold=100):
+    """
+    Build bigram model.
+    :param: sentences: List[List[str]] List of sentences, where each sentence is a list of words.
+    :param: min_count: ignore all words and bigrams with total collected count lower than this value
+    :param: threshold: Threshold score for forming bigrams. Pairs of words are converted to bigrams if they have a score
+    greater than the threshold. A higher score means fewer bigrams.
+    """
+    bigram = gensim.models.Phrases(sentences, min_count=min_count, threshold=threshold)
+    # convert to faster implementation of Phrases (reduced functionality, but is all we need since we aren't going to
+    # add more words to the models)
+    bigram_model = gensim.models.phrases.Phraser(bigram)
+    return bigram_model
+
+
+def make_bigrams_docs(docs, bigram_model):
+    """
+    Convert pairs of words that are bigram phrases (as identified by bigram model) into bigrams.
+    :param: docs: list of  of docs, where each doc is list of sentences and each sentence is a list of words and each word is a str
+    :param: bigram_model: gensim Phrases bigram model
+    """
+    return [make_bigrams(doc, bigram_model) for doc in docs]
+
+
+def make_bigrams(sentences, bigram_model):
+    """
+    Convert pairs of words that are bigram phrases (as identified by bigram model) into bigrams.
+    E.g. "oil" "leak" --> "oil_leak"
+    :param: sentences: list of list of words (strs)
+    :param: bigram_model: gensim Phrases bigram model
+    """
+    return [bigram_model[sent] for sent in sentences]
