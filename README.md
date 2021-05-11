@@ -6,6 +6,8 @@ Install the following packages:
 
 Run ``python -m spacy download en_core_web_sm`` (needed for spacy).
 
+To run the topic modeling code, you need to download the Mallet topic model from [here](http://mallet.cs.umass.edu/download.php).
+
 ## Data
 Datasets for the r/ttcafterloss and r/infertility subreddits can be found in the data/<subreddit_name>/ directory.
 
