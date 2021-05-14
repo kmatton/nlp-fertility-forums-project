@@ -33,3 +33,16 @@ In addition, there are csv files named "processed_posts.csv". These files contai
 
 The resulting csv files have two new text columns, 'processed_text' and 'processed_title', which contain the pre-processed post body text and post title text respectively.
 The pre-processed versions of the text are stored as lists of sentences, which are lists of words.
+
+Finally, there is a single csv file named "all_posts_with_comment_topics.csv" that has a row for all posts from the "posts.csv" files in both the data/infertility and data/ttcafterloss
+directories. This file contains metrics related to the distribution over topics found in the comments that responded to each post. We used a topic model with
+k=30 topics. This means for each comment, we have a 30-D vector that encodes the probability of each topic being present in
+that comment. Therefore, for each post, we have a (# comments x 30) topic distribution matrix. We extract metrics from this matrix
+that can be used as our prediction targets.
+The columns with these metrics are:
+* ``mean_topic_dist``: the mean distribution of topics across all comments (a 30-D vector with a value 0-1 for each topic)
+* ``max_mean_topic``: the # (1-30) of the topic with the greatest mean value across all comments.
+* ``mode_max_topic``: first, for each comment, we select the topic that had the max value. We then take the topic # (1-30) that was most frequently the 
+max value topic across all comments.
+* ``max_topic_sample``: first, for each comment, we select the topic that had the max value. We then randomly sample a topic # (1-30) from this
+set of topics that had the max value for each comment.
