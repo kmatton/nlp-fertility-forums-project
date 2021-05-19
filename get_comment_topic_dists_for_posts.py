@@ -13,7 +13,7 @@ def converter(in_str):
 
 
 # read in csv file with per-document topic distributions
-doc_topic_df = pd.read_csv("data/topic_model/doc_topic_distributions.csv",
+doc_topic_df = pd.read_csv("data/topic_model/10_topics/doc_topic_distributions.csv",
                            index_col=0, converters={'topic_dist': converter})
 # drop entries with 'dark' as id (seems to be error in data)
 doc_topic_df = doc_topic_df[doc_topic_df['id'] != 'dark']
@@ -83,4 +83,4 @@ post_df["mean_topic_dist"] = mean_topic_dists
 post_df["max_mean_topic"] = max_mean_topics
 post_df["mode_max_topic"] = mode_max_topics
 post_df["max_topic_sample"] = sample_max_topics
-post_df.to_csv("data/all_posts_with_comment_topics.csv")
+post_df.to_csv("data/10_all_posts_with_comment_topics.csv")
